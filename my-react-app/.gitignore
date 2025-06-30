@@ -1,0 +1,28 @@
+### Dependencies ###
+/node_modules/
+/.pnpm-store/
+package-lock.json
+yarn.lock
+
+### Build/Artifacts ###
+/dist/
+/.vite/
+*.log
+
+### Environment ###
+.env
+.env.local
+
+### IDE/Système ###
+.idea/
+.vscode/
+.DS_Store
+
+
+/public
+/src/assets
+/src/*.jsx
+!/src/App.jsx
+!/src/main.jsx
+!/src/Card.jsx
+!/src/CardList.jsx
