@@ -1,7 +1,7 @@
 import React from 'react';
-import { Card } from './Card.jsx';
+import Card from './Card.jsx';
 
-export function CardList({ cards, selectedCardIds, onCardClick }) {
+function CardList({ cards, selectedCardIds, onCardClick, onEdit, onDelete, editingCardId, onSave, onCancelEdit }) {
   return (
     <div className="card-list">
       {cards.map((card) => (
@@ -10,8 +10,15 @@ export function CardList({ cards, selectedCardIds, onCardClick }) {
           card={card}
           isSelected={selectedCardIds.includes(card.id)}
           onClick={onCardClick}
+          onEdit={onEdit}
+          onDelete={onDelete}
+          isEditing={editingCardId === card.id}
+          onSave={onSave}
+          onCancelEdit={onCancelEdit}
         />
       ))}
     </div>
   );
 }
+
+export default CardList;

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { CardList } from './CardList.jsx';
+import CardList from './CardList.jsx';
 import './App.css';
 
 function App() {
@@ -17,7 +17,13 @@ function App() {
   // État pour gérer le contenu du nouveau champ de saisie
   const [newCardContent, setNewCardContent] = useState('');
 
+  // État pour gérer l'édition
+  const [editingCardId, setEditingCardId] = useState(null);
+
   const handleCardClick = (id) => {
+    // Empêcher la sélection pendant l'édition
+    if (editingCardId) return;
+
     setSelectedId((prevSelected) => {
       // Si la carte est déjà sélectionnée, la désélectionner
       if (prevSelected.includes(id)) {
@@ -68,7 +74,7 @@ function App() {
 
   // Fonction pour ajouter une nouvelle carte
   const handleAddCard = (e) => {
-    e.preventDefault();
+    if (e) e.preventDefault();
     
     // Vérifier que le champ n'est pas vide
     if (newCardContent.trim() === '') {
@@ -92,12 +98,57 @@ function App() {
     setNewCardContent('');
   };
 
+  // UPDATE - Fonction pour modifier une carte
+  const handleEditCard = (id) => {
+    setEditingCardId(id);
+    setSelectedId([]); // Désélectionner toutes les cartes pendant l'édition
+  };
+
+  const handleSaveEdit = (id, newContent) => {
+    setCards(prevCards => 
+      prevCards.map(card => 
+        card.id === id ? { ...card, content: newContent } : card
+      )
+    );
+    setEditingCardId(null);
+  };
+
+  const handleCancelEdit = () => {
+    setEditingCardId(null);
+  };
+
+  // DELETE - Fonction pour supprimer une carte
+  const handleDeleteCard = (id) => {
+    if (window.confirm('Êtes-vous sûr de vouloir supprimer cette carte ?')) {
+      setCards(prevCards => prevCards.filter(card => card.id !== id));
+      // Nettoyer les sélections si la carte supprimée était sélectionnée
+      setSelectedId(prevSelected => prevSelected.filter(cardId => cardId !== id));
+      // Arrêter l'édition si la carte en cours d'édition est supprimée
+      if (editingCardId === id) {
+        setEditingCardId(null);
+      }
+    }
+  };
+
+  const getStatusMessage = () => {
+    if (editingCardId) {
+      return "Mode édition activé. Modifiez le contenu et sauvegardez.";
+    }
+    if (selectedId.length === 1) {
+      return "Cliquez sur une deuxième carte pour les échanger.";
+    }
+    if (selectedId.length === 0) {
+      return "Sélectionnez deux cartes pour commencer l'échange.";
+    }
+    return "";
+  };
+
   return (
     <div className="app-container">
       <h1 className="app-title">Jeu de Cartes React</h1>
       
       {/* Formulaire d'ajout de carte */}
-      <form className="add-card-form" onSubmit={handleAddCard}>
+      <div className="add-card-form">
         <div className="form-group">
           <input
             type="text"
@@ -105,21 +156,33 @@ function App() {
             onChange={(e) => setNewCardContent(e.target.value)}
             placeholder="Contenu de la nouvelle carte..."
             className="card-input"
+            onKeyPress={(e) => {
+              if (e.key === 'Enter') {
+                handleAddCard(e);
+              }
+            }}
           />
-          <button type="submit" className="add-button">
+          <button onClick={handleAddCard} className="add-button">
             Ajouter une carte
           </button>
         </div>
-      </form>
+      </div>
 
       <p className="app-message">
-        {/* Afficher un message en fonction du nombre de cartes sélectionnées */}
-        {selectedId.length === 1 && "Cliquez sur une deuxième carte pour les échanger."}
-        {selectedId.length === 0 && "Sélectionnez deux cartes pour commencer l'échange."}
+        {getStatusMessage()}
       </p>
       
       {/* Composant CardList pour afficher les cartes */}
-      <CardList cards={cards} selectedCardIds={selectedId} onCardClick={handleCardClick} />
+      <CardList 
+        cards={cards} 
+        selectedCardIds={selectedId} 
+        onCardClick={handleCardClick}
+        onEdit={handleEditCard}
+        onDelete={handleDeleteCard}
+        editingCardId={editingCardId}
+        onSave={handleSaveEdit}
+        onCancelEdit={handleCancelEdit}
+      />
     </div>
   );
 }
